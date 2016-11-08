@@ -1,47 +1,24 @@
-package org.aksw.sdw.meta_rdf;
+package org.aksw.sdw.meta_rdf.file.representations;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.function.Function;
 
-public class GraphRepresentation {
+import org.aksw.sdw.meta_rdf.MetaStatement;
+import org.aksw.sdw.meta_rdf.MetaStatementsUnitView;
+import org.aksw.sdw.meta_rdf.RdfQuad;
+import org.aksw.sdw.meta_rdf.file.metafile.MetaStatementsUnit;
+import org.aksw.sdw.meta_rdf.file.metafile.MetadataUnit;
+import org.aksw.sdw.meta_rdf.file.metafile.Statement;
+
+public class GraphRepresentation extends AbstractRepresentationFormat {
 	public static enum statementMode {FLAT_STATEMENTS,GROUPED_STATEMENTS};
 	private statementMode mode;
 	String default_graph = "<http://default.de/>"; //TODO read from properties file
-	Function<String,String> keyConvert;
-	Function<String,String> valueConvert;
 	
 	public GraphRepresentation(statementMode mode,Function<String,String> keyConvert, Function<String,String> valueConvert) {
 		this.mode=mode;   this.keyConvert=keyConvert  ; this.valueConvert= valueConvert;
-	}
-	
-	public GraphRepresentation(statementMode mode)  {
-		this.mode=mode;   
-		this.keyConvert = 
-				(s) -> {
-					if (s.startsWith("<") && s.endsWith(">"))
-						return s;
-					else 
-					{
-						 String k = null;
-						 try {k =  URLEncoder.encode(s, "UTF-8");} catch (UnsupportedEncodingException e) {e.printStackTrace();}
-						 return "http://sdw.aksw.org/metardf/Key#"+k;
-					}
-						
-			
-				} ;
-		this.valueConvert = 
-				(s) -> {
-					if (s.startsWith("<") && s.endsWith(">"))
-						return s;
-					if (s.startsWith("\""))
-						return s;
-					else
-						return s.replaceAll("\t", "\\t").replaceAll("\"", "\\\"").replaceAll("\n", "\\n").replaceAll("\r", "\\r");
-		};
 	}
 	
 	public Collection<RdfQuad> getStatementRepresentation(MetaStatement m)
@@ -63,6 +40,21 @@ public class GraphRepresentation {
 		return quads;
 	}
 	
+	@Override
+	public Collection<RdfQuad> getRepresenationForUnit(MetaStatementsUnit msu)
+	{
+		MetaStatementsUnitView muv = new MetaStatementsUnitView(msu);
+		for ( Statement st : muv.getStatements()) {
+		    if (st.getType()=="triple") //process a statement
+		    {
+		    	for (MetadataUnit mu : muv.getMetadataUnitsForStatement(st)) {
+		    		;
+		    	}
+		    }
+		}
+		return null;
+	}
+	
 	
 	public String getGraph()
 	{
@@ -80,6 +72,15 @@ public class GraphRepresentation {
 	
 	public String getObject()
 	{
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.aksw.sdw.meta_rdf.file.representations.AbstractRepresentationFormat#getDeduplicatedForUnit(org.aksw.sdw.meta_rdf.file.metafile.MetaStatementsUnit)
+	 */
+	@Override
+	public Collection<RdfQuad> getDeduplicatedForUnit(MetaStatementsUnit mu) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 }

@@ -24,13 +24,13 @@ public class RdfQuad extends RdfStatement
         this.t= q.asTriple(); this.graph=q.getGraph();
 	}
 	
-	RdfQuad(String graph, String NTriple)
+	public RdfQuad(String graph, String NTriple)
 	{
 		super(NTriple);
 		this.graph= NodeFactory.createURI(graph);
 	}
 	
-	RdfQuad(String graph, RdfStatement s)
+	public RdfQuad(String graph, RdfStatement s)
 	{
 		this.t=s.t;
 		this.graph= NodeFactory.createURI(graph);
