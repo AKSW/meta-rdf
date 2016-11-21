@@ -1,5 +1,6 @@
 package org.aksw.sdw.meta_rdf.file.metafile;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class MetadataUnit {
@@ -7,7 +8,7 @@ public class MetadataUnit {
 
 	String 				groupid;
 	List<MetadataFact> 	metadataFacts;
-	String 				hasNested;
+	String 				hasMeta;
 
 
 	public MetadataUnit() {
@@ -21,12 +22,18 @@ public class MetadataUnit {
 
 
 	public List<MetadataFact> getMetadataFacts() {
-		return metadataFacts;
+			if (metadataFacts==null)
+				return new LinkedList<MetadataFact>();
+			else
+				return metadataFacts;
 	}
 
 
 	public String getHasNested() {
-		return hasNested;
+		if (null==hasMeta)
+			return "";
+		else
+			return hasMeta;
 	}
 	
 

@@ -1,15 +1,28 @@
 package org.aksw.sdw.meta_rdf;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.aksw.sdw.meta_rdf.file.metafile.MetaStatementsUnit;
+import org.aksw.sdw.meta_rdf.file.representations.AbstractRepresentationFormat;
+import org.aksw.sdw.meta_rdf.file.representations.GraphRepresentation;
+import org.aksw.sdw.meta_rdf.file.representations.RdrRepresentation;
+import org.aksw.sdw.meta_rdf.file.representations.SingletonPropertyRepresentation;
+import org.aksw.sdw.meta_rdf.file.representations.StandardReificationRepresentation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 	
@@ -18,16 +31,43 @@ public class Main
 {
 
     static String inputFilePath ;
-    static String outputFilePath ;
+    static String outputFilePattern ;
+    static Map<AbstractRepresentationFormat,PrintStream> representations = new HashMap<>();	
+    static AtomicInteger linesCount = new AtomicInteger(0);
+
 	
 	public static void main(String[] args) 
 	{
 
-		parseArguments(args);
-		
-		try (BufferedReader br = Files.newBufferedReader(Paths.get(inputFilePath))) {
+		try
+		{
+			parseArguments(args);
+		} catch (FileNotFoundException e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		//RdfQuad q = new RdfQuad("<http://de.dbpedia.org/resource/Ang_Lee> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://dbpedia.org/ontology/Person> .");
+		//q.setPredicate(q.getPredicate()+"foäää:6//()%$");
+		//System.out.println(q);
 
-			 br.lines().parallel().forEach(Main::processLine);
+		try (BufferedReader br = Files.newBufferedReader(Paths.get(inputFilePath))) {
+			try
+			{
+				//ps = new PrintStream(Paths.get(outputFilePattern).toFile());
+				br.lines().parallel().forEach(Main::processLine);
+			} catch (Exception e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				for (AbstractRepresentationFormat r : representations.keySet())
+				{
+				    PrintStream ps = representations.get(r);
+					ps.close();
+				}
+				
+			}		 
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -35,7 +75,7 @@ public class Main
 
 	}
 	
-	static void parseArguments(String[] args)
+	static void parseArguments(String[] args) throws FileNotFoundException
 	{
 		Options options = new Options();
 
@@ -43,9 +83,21 @@ public class Main
 		input.setRequired(true);
 		options.addOption(input);
 
-		Option output = new Option("o", "output", true, "output file");
+		Option output = new Option("o", "output", true, "output file path pattern, file name pattern without file suffix");
 		//output.setRequired(true);
 		options.addOption(output);
+		
+		Option format = new Option("f", "formats", false, "list of representation formats which should be used or all (default)");
+		//format.setRequired(true); 
+		format.setArgs(12);
+		options.addOption(output);
+		
+		Option properties  = OptionBuilder.withArgName( "property=value" )
+                .hasArgs(2)
+                .withValueSeparator()
+                .withDescription( "use value for given property" )
+                .create( "D" );
+		options.addOption(properties);
 
 		CommandLineParser parser = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
@@ -55,20 +107,70 @@ public class Main
 			cmd = parser.parse(options, args);
 		} catch (ParseException e) {
 			System.out.println(e.getMessage());
-			formatter.printHelp("utility-name", options);
+			formatter.printHelp("meta-rdf", options);
 
 			System.exit(1);
 			return;
 		}
 
         inputFilePath = cmd.getOptionValue("input");
-        outputFilePath = cmd.getOptionValue("output");
+        outputFilePattern = cmd.getOptionValue("output");
+        Meta.options = cmd.getOptionProperties("D");
+        
+        String all[] = {"all"};  
+        String formats[] = (cmd.getOptionValues("formats")!=null) ? cmd.getOptionValues("format") : all;
+        
+        for (String f :  formats)
+		{
+			AbstractRepresentationFormat g;
+			if (f.equalsIgnoreCase("ngraphs") || f.equalsIgnoreCase("all"))
+				representations.put(	g = new GraphRepresentation(),   					createPS(outputFilePattern+	"-ngraphs."	+g.getFileExtension() )   );
+			if (f.equalsIgnoreCase("sgprop")  || f.equalsIgnoreCase("all"))
+				representations.put(	g = new SingletonPropertyRepresentation(), 			createPS(outputFilePattern+	"-sgprop."	+g.getFileExtension() )   );		
+			if (f.equalsIgnoreCase("stdreif") || f.equalsIgnoreCase("all"))
+				representations.put(	g = new StandardReificationRepresentation(), 		createPS(outputFilePattern+	"-sdtreif."	+g.getFileExtension() )   );		
+			if (f.equalsIgnoreCase("rdr")     || f.equalsIgnoreCase("all"))
+				representations.put(	g = new RdrRepresentation(), 						createPS(outputFilePattern+	"-rdr."		+g.getFileExtension() )   );		
+		}
 
     }
 	
+	static PrintStream createPS(String filename) throws FileNotFoundException
+	{
+		return new PrintStream(Paths.get(filename).toFile());
+	}
+	
 	static void processLine(String line)
 	{
-		Meta.readMetaStatementsUnit(line);
+		int thisLineNr = linesCount.getAndIncrement();
+		MetaStatementsUnit msu;
+		try
+		{
+			msu = Meta.readMetaStatementsUnit(line);
+			for (AbstractRepresentationFormat r : representations.keySet())
+			{
+			    PrintStream ps = representations.get(r);
+			    Collection<RdfQuad> l = r.getRepresenationForUnit(msu);
+				r.writeQuads(l, ps);
+			}
+		} catch (Exception e)
+		{
+			System.err.println("An Error occured during processing the metastatementsUnit #"+thisLineNr);
+			e.printStackTrace();
+			System.err.println(line);
+		}
+		
+//		AbstractRepresentationFormat f = new GraphRepresentation();
+//		Collection<RdfQuad> l = f.getRepresenationForUnit(msu);
+//		Meta.writeQuads(l, ps);
+//		try(PrintStream ps = new PrintStream(Paths.get(outputFilePath).toFile(),))
+//		{
+//			Meta.writeQuads(l, ps);//FileOutputStream(Paths.get(outputFilePath).toFile()));
+//		} catch (FileNotFoundException e)
+//		{
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} 
 	}
 
 }

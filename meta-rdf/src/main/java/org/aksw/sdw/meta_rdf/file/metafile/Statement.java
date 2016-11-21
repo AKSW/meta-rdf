@@ -1,5 +1,6 @@
 package org.aksw.sdw.meta_rdf.file.metafile;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class Statement {
@@ -10,7 +11,10 @@ public class Statement {
 	List<String> mids;
 	
 	public List<String> getMids() {
-		return mids;
+		if (mids==null)
+			return new LinkedList<String>();
+		else 
+			return mids;
 	}
 
 	public Statement() {

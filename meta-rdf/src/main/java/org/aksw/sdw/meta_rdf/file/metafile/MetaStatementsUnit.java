@@ -11,32 +11,22 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 public class MetaStatementsUnit {
 	
 public	
-	String groupid;
-	List<Statement> statements;
+	List<StatementsUnit> statementgroups;
 	List<MetadataUnit> metadata;
 	List<String> params;
-	List<String> mids;
 	
 	public String toString() {
 	     return new ReflectionToStringBuilder(this, new RecursiveToStringStyle()).toString();
 	}
 	
-	
 	/* Getters */
-	public List<String> getMids() {
-		return mids;
-	}
-
-	public String getGroupid() {
-		return groupid;
-	}
-
-	public List<Statement> getStatements() {
-		return statements;
-	}
 
 	public List<MetadataUnit> getMetadata() {
 		return metadata;
+	}
+
+	public List<StatementsUnit> getStatementUnits() {
+		return statementgroups;
 	}
 
 	public List<String> getParams() {

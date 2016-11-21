@@ -1,7 +1,7 @@
 package org.aksw.sdw.meta_rdf;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.Properties;
 
 import org.aksw.sdw.meta_rdf.file.metafile.MetaStatementsUnit;
 
@@ -26,11 +26,12 @@ public class Meta
 
 			// Convert JSON string from file to Object
 			mu = mapper.readValue(line, MetaStatementsUnit.class); 
-			System.out.println(mu);
+			//System.out.println(mu);
 
 			//Pretty print
-			String pretty = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mu);
-			System.out.println(pretty);
+			//String pretty = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mu);
+			//System.out.println(pretty);
+			
 
 		} catch (JsonGenerationException e) {
 			e.printStackTrace();
@@ -41,4 +42,17 @@ public class Meta
 		}
 		return mu;
 	}
+	
+	public static Properties options;
+	
+	public static boolean shareCompactness()
+	{
+		return Boolean.parseBoolean(options.getProperty("shareCompactness","false"));
+	}
+	
+	public static boolean metaGroupsAsGraph()
+	{
+		return Boolean.parseBoolean(options.getProperty("metaGroupsAsGraph","false"));
+	}
+	
 }
