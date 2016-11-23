@@ -1,6 +1,5 @@
 package org.aksw.sdw.meta_rdf.file.metafile;
 
-import java.security.acl.Group;
 import java.util.LinkedList;
 import java.util.List;
 

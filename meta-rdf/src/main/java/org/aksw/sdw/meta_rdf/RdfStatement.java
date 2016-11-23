@@ -11,9 +11,6 @@ import java.util.List;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 
@@ -32,6 +29,12 @@ public class RdfStatement
 	RdfStatement()
 	{
 		
+	}
+	
+	public void setSubject(String subjectUri)
+	{
+		Node n = NodeFactory.createURI(subjectUri);
+		t = new Triple(t.getSubject(),n,t.getObject());	
 	}
 	
 	public String getSubject()
@@ -78,6 +81,32 @@ public class RdfStatement
 	{
 		return getAsNt();
 	}	
+	
+	@Override
+	public int hashCode()
+	{
+		return t.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		RdfStatement other = (RdfStatement) obj;
+		if (t == null)
+		{
+			if (other.t != null)
+				return false;
+		} else if (!t.equals(other.t))
+			return false;
+		return true;
+	}
+
 	
 //	public String getObject()
 //	{

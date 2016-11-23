@@ -7,11 +7,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.aksw.sdw.meta_rdf.file.metafile.MetaStatementsUnit;
 import org.aksw.sdw.meta_rdf.file.metafile.MetadataUnit;
 import org.aksw.sdw.meta_rdf.file.metafile.Statement;
 import org.aksw.sdw.meta_rdf.file.metafile.StatementsUnit;
+
+import com.github.andrewoma.dexx.collection.Pair;
+
 
 /**
  * @author kilt
@@ -20,6 +24,7 @@ import org.aksw.sdw.meta_rdf.file.metafile.StatementsUnit;
 public class MetaStatementsUnitView {
 	MetaStatementsUnit m;
 	Map<String,MetadataUnit> metadataUnits;
+	protected Map<Pair<String,String>,Integer> propertyCount = new  ConcurrentHashMap<>();
 	
 	public MetaStatementsUnitView(MetaStatementsUnit msu)
 	{
@@ -75,8 +80,29 @@ public class MetaStatementsUnitView {
 				l.add(metadataUnits.get(mid));
 		 return l;
 	}
-	
-	
+	/**
+	 * this method counts (and increments) for every subject separately how often a predicate has been processed within this MetaStatementsUnitView
+	 * 
+	 * @param q the quad which is going to be processed containing the predicate and subject which are use for the lookup 
+	 * @return the value of already processed predicates for the given subject predicate combination INCREMENTED by 1
+	 */
+	public int incrementProcessedCountForPredicatePerSubject(RdfQuad q)
+	{ 
+		Pair<String,String> p = new Pair<>(q.getSubject(), q.getPredicate());
+		Integer cnt = propertyCount.get(p);
+		if (null==cnt)
+		{
+			propertyCount.put(p, 0);
+			return 0;
+		}else
+		{
+			cnt++;
+			propertyCount.put(p, cnt);
+			return cnt;	
+		}
+			
+			
+	}
 	
 
 }

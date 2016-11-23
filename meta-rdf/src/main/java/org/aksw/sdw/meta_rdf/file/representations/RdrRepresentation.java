@@ -22,7 +22,6 @@ import org.aksw.sdw.meta_rdf.file.metafile.StatementsUnit;
 
 
 public class RdrRepresentation extends AbstractRepresentationFormat {
-	String default_graph = "";//"https://nl.wikipedia.org/wiki/BLØF"; //TODO read from properties file
 	GraphRepresentation gr ;
 	
 	public RdrRepresentation(Function<String,String> keyConvert, Function<String,String> valueConvert) {
@@ -191,14 +190,5 @@ public class RdrRepresentation extends AbstractRepresentationFormat {
 	    	}
 		}
 		
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.aksw.sdw.meta_rdf.file.representations.AbstractRepresentationFormat#getDeduplicatedForUnit(org.aksw.sdw.meta_rdf.file.metafile.MetaStatementsUnit)
-	 */
-	@Override
-	public Collection<RdfQuad> getDeduplicatedForUnit(MetaStatementsUnit mu) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

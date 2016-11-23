@@ -1,7 +1,6 @@
 package org.aksw.sdw.meta_rdf;
 
 import java.util.Collection;
-import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;

@@ -3,8 +3,6 @@
  */
 package org.aksw.sdw.meta_rdf;
 
-import org.apache.jena.reasoner.rulesys.builtins.Remove;
-
 /**
  * @author kilt
  *

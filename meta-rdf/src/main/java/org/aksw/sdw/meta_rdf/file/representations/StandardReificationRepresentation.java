@@ -4,6 +4,7 @@ package org.aksw.sdw.meta_rdf.file.representations;
 import java.util.List;
 import java.util.function.Function;
 
+import org.aksw.sdw.meta_rdf.MetaStatementsUnitView;
 import org.aksw.sdw.meta_rdf.RdfQuad;
 
 public class StandardReificationRepresentation extends AbstractTripleIdBasedRepresentation {
@@ -17,7 +18,7 @@ public class StandardReificationRepresentation extends AbstractTripleIdBasedRepr
 	}
 	
 	@Override
-	protected void addRepresentationForRdfQuad(List<RdfQuad> quads, RdfQuad q, String stmtUri)
+	protected void addRepresentationForRdfQuad(List<RdfQuad> quads, RdfQuad q, String stmtUri,MetaStatementsUnitView muv)
 	{
 		q.addStdReification(stmtUri, quads);
 	}

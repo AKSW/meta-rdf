@@ -55,4 +55,9 @@ public class Meta
 		return Boolean.parseBoolean(options.getProperty("metaGroupsAsGraph","false"));
 	}
 	
+	public static String getDefaultGraph()
+	{
+		return options.getProperty("defaultGraph", "");
+	}
+	
 }

@@ -7,8 +7,12 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
+import org.aksw.sdw.meta_rdf.Meta;
 import org.aksw.sdw.meta_rdf.RdfQuad;
 import org.aksw.sdw.meta_rdf.file.metafile.MetaStatementsUnit;
 
@@ -18,11 +22,12 @@ import org.aksw.sdw.meta_rdf.file.metafile.MetaStatementsUnit;
  */
 public abstract class AbstractRepresentationFormat {
 	
-	Function<String,String> keyConvert;
-	Function<String,String> valueConvert;
+	protected Function<String,String> keyConvert;
+	protected Function<String,String> valueConvert;
+	protected Map<RdfQuad,AtomicInteger> deduplicated=new ConcurrentHashMap<>();
+	protected String default_graph = Meta.getDefaultGraph();
 
 	public abstract Collection<RdfQuad> getRepresenationForUnit(MetaStatementsUnit mu);
-	public abstract Collection<RdfQuad> getDeduplicatedForUnit(MetaStatementsUnit mu);
 	public abstract String getFileExtension();
 	
 	public AbstractRepresentationFormat(Function<String,String> keyConvert, Function<String,String> valueConvert) {
@@ -54,6 +59,28 @@ public abstract class AbstractRepresentationFormat {
 						return "\""+s.replaceAll("\t", "\\t").replaceAll("\"", "\\\"").replaceAll("\n", "\\n").replaceAll("\r", "\\r")+"\"";
 		};
 	}
+	
+	public Collection<RdfQuad> getDeduplicated()
+	{
+		System.out.println("Deduplication statistics for "+this.getClass().toString());
+		System.out.println("count\tQuad");
+		for (Object key : deduplicated.keySet())
+		{
+			System.out.print(deduplicated.get(key)+"\t"+key);
+		} 
+		return deduplicated.keySet();
+	}
+	
+	public void addToDeduplicated(RdfQuad q)
+	{
+		AtomicInteger i = deduplicated.get(q);
+		if (i==null)
+			deduplicated.put(q, new AtomicInteger(1));
+		else
+			i.incrementAndGet();
+			
+	}
+	
 	
 	public synchronized void writeQuads(Collection<RdfQuad> l, PrintStream ps) //TODO static
 	{

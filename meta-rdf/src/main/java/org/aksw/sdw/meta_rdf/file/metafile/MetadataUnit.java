@@ -9,6 +9,7 @@ public class MetadataUnit {
 	String 				groupid;
 	List<MetadataFact> 	metadataFacts;
 	String 				hasMeta;
+	String 				grouptype;
 
 
 	public MetadataUnit() {
@@ -28,6 +29,13 @@ public class MetadataUnit {
 				return metadataFacts;
 	}
 
+	public String getGroupType()
+	{
+		if (null==grouptype)
+			return "";
+		else
+			return grouptype;
+	}
 
 	public String getHasNested() {
 		if (null==hasMeta)

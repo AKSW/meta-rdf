@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
+import org.aksw.sdw.meta_rdf.MetaStatementsUnitView;
 import org.aksw.sdw.meta_rdf.RdfQuad;
 
 public class SingletonPropertyRepresentation extends AbstractTripleIdBasedRepresentation {
@@ -25,7 +26,7 @@ public class SingletonPropertyRepresentation extends AbstractTripleIdBasedRepres
 	}
 	
 	@Override
-	protected void addRepresentationForRdfQuad(List<RdfQuad> quads, RdfQuad q, String stmtUri)
+	protected void addRepresentationForRdfQuad(List<RdfQuad> quads, RdfQuad q, String stmtUri,MetaStatementsUnitView muv)
 	{
 		String predicate=q.getPredicate();
 		///String metaStatementUri = predicate+"-"+UUID.randomUUID().toString(); 	// generate  singleton property statement identifier for meta triple

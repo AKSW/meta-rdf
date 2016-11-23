@@ -20,7 +20,6 @@ import org.aksw.sdw.meta_rdf.file.metafile.StatementsUnit;
 public class GraphRepresentation extends AbstractRepresentationFormat {
 	public static enum statementMode {FLAT_STATEMENTS,GROUPED_STATEMENTS};
 	private statementMode mode;
-	String default_graph = "";//"https://nl.wikipedia.org/wiki/BLØF"; //TODO read from properties file
 	
 	public GraphRepresentation(Function<String,String> keyConvert, Function<String,String> valueConvert) {
 		super(keyConvert,valueConvert);
@@ -96,47 +95,19 @@ public class GraphRepresentation extends AbstractRepresentationFormat {
 	    			quads.add(q);
 	    			if ( (hasSid && hasGroupID ) || !hasGroupID)
 	    			{
+	    				
 	    				processMetadataGroup(muv.getMetadataUnitsForStatement(st),quads,default_graph,statementUri,muv,1);
-	    				/*for (MetadataUnit mu : muv.getMetadataUnitsForStatement(st)) //retrieve statements
-				    	{ 
-			    			//TODO what happens if there is no metadata -- > emit tuple as well ??
-			    			
-			    			for (MetadataFact mf : mu.getMetadataFacts())
-			    			{
-		    					String ttl = "<"+statementUri+"> "+keyConvert.apply(mf.getKey())+ valueConvert.apply((mf.getValue()))+".";	//TODO add feature to specify the graph for the metadata
-		    					RdfQuad q2 = new RdfQuad(default_graph,ttl);
-		    					quads.add(q2);
-				    		}  		
-				    	}*/
+	    				
 	    				if (hasGroupID)
 	    				{
-	    					// replicate metadata from group using the SID
+	    				  // replicate metadata from group using the SID
 	    					processMetadataGroup(sharedMeta,quads,default_graph,statementUri,muv,1);
-	    					/*for (MetadataUnit mu : sharedMeta) //retrieve statements
-	    			    	{     			
-	    		    			for (MetadataFact mf : mu.getMetadataFacts())
-	    		    			{
-	    							String ttl = "<"+statementUri+"> "+keyConvert.apply(mf.getKey())+ valueConvert.apply((mf.getValue()))+".";	//TODO add feature to specify the graph for the metadata
-	    							RdfQuad q2 = new RdfQuad(default_graph,ttl);
-	    							quads.add(q2);
-	    			    		}		
-	    			    	}*/
 	    				}
 	    			}
-			    	
 			    }	
 			}
 		// add metadata for group
 			processMetadataGroup(sharedMeta,quads,default_graph,groupUri,muv,1);
-			/*for (MetadataUnit mu : sharedMeta) //retrieve statements
-	    	{     			
-    			for (MetadataFact mf : mu.getMetadataFacts())
-    			{
-					String ttl = "<"+groupUri+"> "+keyConvert.apply(mf.getKey())+ valueConvert.apply((mf.getValue()))+".";	//TODO add feature to specify the graph for the metadata
-					RdfQuad q2 = new RdfQuad(default_graph,ttl);
-					quads.add(q2);
-	    		}   		
-	    	}*/
 			
 		}
 		return quads;
@@ -144,33 +115,26 @@ public class GraphRepresentation extends AbstractRepresentationFormat {
 	
 	protected void processMetadataGroup(List<MetadataUnit> mus, List<RdfQuad> quads,String graphUri,String statementUri,MetaStatementsUnitView muv, int recursiveDepth)
 	{
-		//List<MetadataUnit> recursiveGroups = new LinkedList<MetadataUnit>();
 		if (recursiveDepth>2)
-			return; //recursiveGroups;
+			return;
 		
 		for (MetadataUnit mu : mus) //retrieve statements
-    	{    
-			String graph = default_graph;
-			if (!mu.getHasNested().equals(""))
+    	{
+			boolean hasNested	= !mu.getHasNested().equals("");
+			boolean strongGroup =  mu.getGroupType().equals("strong");
+			String graph = (strongGroup || hasNested) ? RdfTools.removeBrackets(mu.getGroupid()) : default_graph;
+			if (hasNested)
 			{
-				graph = mu.getGroupid(); //TODO also use groupId when type not flat (strict)
 				processMetadataGroup(muv.getMetadataUnit(mu.getHasNested()),quads,default_graph,graph,muv,recursiveDepth+1);
 			}
 			for (MetadataFact mf : mu.getMetadataFacts())
 			{
-				String ttl = "<"+RdfTools.removeBrackets(statementUri)+"> "+keyConvert.apply(mf.getKey())+ valueConvert.apply((mf.getValue()))+".";	//TODO add feature to specify the graph for the metadata
-				RdfQuad q2 = new RdfQuad(RdfTools.removeBrackets(graph),ttl);
+				String ttl = "<"+RdfTools.removeBrackets(statementUri)+"> "+keyConvert.apply(mf.getKey())+ valueConvert.apply((mf.getValue()))+".";
+				RdfQuad q2 = new RdfQuad(graph,ttl);
 				quads.add(q2);
     		}
     	}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.aksw.sdw.meta_rdf.file.representations.AbstractRepresentationFormat#getDeduplicatedForUnit(org.aksw.sdw.meta_rdf.file.metafile.MetaStatementsUnit)
-	 */
-	@Override
-	public Collection<RdfQuad> getDeduplicatedForUnit(MetaStatementsUnit mu) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
 }

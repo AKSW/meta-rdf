@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -14,6 +13,7 @@ import java.util.List;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.core.Quad;
@@ -56,6 +56,16 @@ public class RdfQuad extends RdfStatement
 			
 		}
 		
+	}
+	
+	public RdfQuad(String graph, String subjectUri, String predicateUri, String objectUri, RdfQuad valuesFromQuad) // not working
+	{
+		Node newGraph 		=  (null==graph) 			? valuesFromQuad.graph 							: NodeFactory.createURI(graph);
+		Node newSubject 	=  (null==subjectUri) 		? valuesFromQuad.getAsTriple().getSubject()		: NodeFactory.createURI(subjectUri);
+		Node newPredicate 	=  (null==predicateUri) 	? valuesFromQuad.getAsTriple().getPredicate()	: NodeFactory.createURI(predicateUri);
+		Node newObject	 	=  (null==objectUri) 		? valuesFromQuad.getAsTriple().getObject()		: NodeFactory.createURI(objectUri);
+		this.graph 	= newGraph;
+		this.t 		= new Triple(newSubject,	newPredicate, newObject);
 	}
 	
 	public RdfQuad(String graph, RdfStatement s)
@@ -142,4 +152,36 @@ public class RdfQuad extends RdfStatement
 			os.print(rdfQuad.getAsNq());
 		}
 	}
+
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((graph == null) ? 0 : graph.hashCode());
+		return result;
+	}
+
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (!(obj instanceof RdfQuad))
+			return false;
+		RdfQuad other = (RdfQuad) obj;
+		if (graph == null)
+		{
+			if (other.graph != null)
+				return false;
+		} else if (!graph.equals(other.graph))
+			return false;
+		return true;
+	}
+	
+	
 }
