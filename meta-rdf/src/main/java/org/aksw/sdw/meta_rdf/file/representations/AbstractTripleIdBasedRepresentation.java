@@ -91,8 +91,8 @@ public abstract class AbstractTripleIdBasedRepresentation extends AbstractRepres
 	    			}
 	    			else if (Meta.shareCompactness()) 			// if shareCompactness is set .
 	    			{
-	    				quads.add(new RdfQuad("<"+statementUri+"> "+"<http://sdw.aksw.org/metardf/hasSharedMeta>"+"<"+groupUri+"> ."));  ; 			// .. we use an specific id for the statement group sharing the same metadata   
-	    			}																																// .. instead of attaching the metadata directly
+	    				quads.add(new RdfQuad(default_graph,"<"+statementUri+"> "+"<http://sdw.aksw.org/metardf/hasSharedMeta>"+"<"+groupUri+"> ."));  ; 			// .. we use an specific id for the statement group sharing the same metadata   
+	    			}																																				// .. instead of attaching the metadata directly
 	    			else
 	    				processMetadataGroup(sharedMeta,quads,default_graph,statementUri,muv,1); // else just do the regular singleton property stuff
 			    }

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
+import org.aksw.sdw.meta_rdf.Meta;
 import org.aksw.sdw.meta_rdf.MetaStatement;
 import org.aksw.sdw.meta_rdf.MetaStatementsUnitView;
 import org.aksw.sdw.meta_rdf.RdfQuad;
@@ -57,6 +58,7 @@ public class GraphRepresentation extends AbstractRepresentationFormat {
 	@Override
 	public Collection<RdfQuad> getRepresenationForUnit(MetaStatementsUnit msu)
 	{
+		boolean forceSID = true;
 		List<RdfQuad> quads = new LinkedList<>();
 		MetaStatementsUnitView muv = new MetaStatementsUnitView(msu);
 		
@@ -83,7 +85,7 @@ public class GraphRepresentation extends AbstractRepresentationFormat {
 			{
 				boolean hasSid = !st.getSid().equals("");
 				String statementUri;
-				if (!hasGroupID)
+				if (!hasGroupID || forceSID)
 					statementUri =  (hasSid) ? RdfTools.removeBrackets(st.getSid()) :"http://sdw.aksw.org/metardf/StatementID#"+UUID.randomUUID().toString()+""; // generate statement identifier if none is provided
 				else
 					statementUri =  (hasSid) ? RdfTools.removeBrackets(st.getSid()) : groupUri; // explicit sid overrides groupUri
@@ -93,21 +95,26 @@ public class GraphRepresentation extends AbstractRepresentationFormat {
 			    {	
 	    			RdfQuad q = new RdfQuad(statementUri,st.getTuple()); //add actual statement
 	    			quads.add(q);
-	    			if ( (hasSid && hasGroupID ) || !hasGroupID)
+	    			if ( (hasSid && hasGroupID ) || !hasGroupID || forceSID)
 	    			{
-	    				
+	    			  // attach the metadata which is specified in the mids field of this statement
 	    				processMetadataGroup(muv.getMetadataUnitsForStatement(st),quads,default_graph,statementUri,muv,1);
-	    				
-	    				if (hasGroupID)
+	    				 
+	    				if (forceSID && Meta.shareCompactness())
+	    				{ 
+	    					quads.add(new RdfQuad(default_graph,"<"+statementUri+"> "+"<http://sdw.aksw.org/metardf/hasSharedMeta>"+"<"+groupUri+"> ."));  ; 			// .. we use an specific id for the statement group sharing the same metadata   
+		    			}																																				// .. instead of attaching the metadata directly
+	    				else if (hasGroupID || (forceSID && ! Meta.shareCompactness()) )
 	    				{
 	    				  // replicate metadata from group using the SID
 	    					processMetadataGroup(sharedMeta,quads,default_graph,statementUri,muv,1);
-	    				}
+	    				}	    			
 	    			}
 			    }	
 			}
-		// add metadata for group
-			processMetadataGroup(sharedMeta,quads,default_graph,groupUri,muv,1);
+		// add metadata for statement group only once or add the 'compressed representation' of the shared metadata
+			if (!forceSID || (forceSID && Meta.shareCompactness()))
+				processMetadataGroup(sharedMeta,quads,default_graph,groupUri,muv,1);
 			
 		}
 		return quads;
