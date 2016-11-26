@@ -32,7 +32,6 @@ public class Meta
 			//String pretty = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mu);
 			//System.out.println(pretty);
 			
-
 		} catch (JsonGenerationException e) {
 			e.printStackTrace();
 		} catch (JsonMappingException e) {
@@ -43,21 +42,12 @@ public class Meta
 		return mu;
 	}
 	
-	public static Properties options;
+	public static Options options;
 	
-	public static boolean shareCompactness()
+	public static Options getOptions()
 	{
-		return Boolean.parseBoolean(options.getProperty("shareCompactness","false"));
+		return options;
 	}
 	
-	public static boolean metaGroupsAsGraph()
-	{
-		return Boolean.parseBoolean(options.getProperty("metaGroupsAsGraph","false"));
-	}
-	
-	public static String getDefaultGraph()
-	{
-		return options.getProperty("defaultGraph", "");
-	}
 	
 }

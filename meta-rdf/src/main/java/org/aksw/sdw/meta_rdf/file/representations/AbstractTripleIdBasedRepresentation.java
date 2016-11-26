@@ -4,11 +4,12 @@ package org.aksw.sdw.meta_rdf.file.representations;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.function.Function;
 
-import org.aksw.sdw.meta_rdf.Meta;
 import org.aksw.sdw.meta_rdf.MetaStatementsUnitView;
+import org.aksw.sdw.meta_rdf.Options;
 import org.aksw.sdw.meta_rdf.RdfQuad;
 import org.aksw.sdw.meta_rdf.RdfTools;
 import org.aksw.sdw.meta_rdf.file.metafile.MetaStatementsUnit;
@@ -22,11 +23,19 @@ public abstract class AbstractTripleIdBasedRepresentation extends AbstractRepres
 	
 	public AbstractTripleIdBasedRepresentation(Function<String,String> keyConvert, Function<String,String> valueConvert) {
 		super(keyConvert,valueConvert);
-		this.gr = new GraphRepresentation(keyConvert, valueConvert);
+		this.gr = new GraphRepresentation(keyConvert, valueConvert, new Options(new Properties()));
 	}
 	public AbstractTripleIdBasedRepresentation() {
 		super();
-		this.gr = new GraphRepresentation();
+		this.gr = new GraphRepresentation(keyConvert, valueConvert, new Options(new Properties()));
+	}
+	public AbstractTripleIdBasedRepresentation(Function<String, String> keyConvert, Function<String, String> valueConvert, Options options) {
+		super(keyConvert, valueConvert, options);
+		this.gr = new GraphRepresentation(keyConvert, valueConvert, new Options(new Properties()));
+	}
+	public AbstractTripleIdBasedRepresentation(Options options) {
+		super(options);
+		this.gr = new GraphRepresentation(keyConvert, valueConvert, new Options(new Properties()));
 	}
 	
 	@Override
@@ -89,7 +98,7 @@ public abstract class AbstractTripleIdBasedRepresentation extends AbstractRepres
 	    					processMetadataGroup(sharedMeta,quads,default_graph,statementUri,muv,1);
 	    				}
 	    			}
-	    			else if (Meta.shareCompactness()) 			// if shareCompactness is set .
+	    			else if (options.shareCompactness()) 			// if shareCompactness is set .
 	    			{
 	    				quads.add(new RdfQuad(default_graph,"<"+statementUri+"> "+"<http://sdw.aksw.org/metardf/hasSharedMeta>"+"<"+groupUri+"> ."));  ; 			// .. we use an specific id for the statement group sharing the same metadata   
 	    			}																																				// .. instead of attaching the metadata directly
@@ -97,7 +106,7 @@ public abstract class AbstractTripleIdBasedRepresentation extends AbstractRepres
 	    				processMetadataGroup(sharedMeta,quads,default_graph,statementUri,muv,1); // else just do the regular singleton property stuff
 			    }
 			}
-			if (Meta.shareCompactness())
+			if (options.shareCompactness())
 				processMetadataGroup(sharedMeta,quads,default_graph,groupUri,muv,1); // add metadata which applies to the whole group only once
 			
 		}
@@ -109,7 +118,7 @@ public abstract class AbstractTripleIdBasedRepresentation extends AbstractRepres
 	protected void processMetadataGroup(List<MetadataUnit> mus, List<RdfQuad> quads,String graphUri,String statementUri,MetaStatementsUnitView muv, int recursiveDepth)
 	{
 		
-		if(Meta.metaGroupsAsGraph()) //if this is set proceed with the metadata in ngraphs mode 
+		if(options.metaGroupsAsGraph()) //if this is set proceed with the metadata in ngraphs mode 
 			gr.processMetadataGroup(mus, quads, graphUri, statementUri, muv, recursiveDepth);
 		else
 		{

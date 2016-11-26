@@ -143,7 +143,7 @@ public class Main
 
         inputFilePath = cmd.getOptionValue("input");
         outputFilePattern = cmd.getOptionValue("output");
-        Meta.options = cmd.getOptionProperties("D");
+        Meta.options =new org.aksw.sdw.meta_rdf.Options(cmd.getOptionProperties("D"));
         
         String all[] = {"all"};  
         String formats[] = (cmd.getOptionValues("formats")!=null) ? cmd.getOptionValues("format") : all;
@@ -169,7 +169,7 @@ public class Main
 	
 	static PrintStream createPS(String filename) throws IOException
 	{
-		if (Boolean.parseBoolean(Meta.options.getProperty("gzOutput","false")))
+		if (Boolean.parseBoolean(Meta.getOptions().getProperties().getProperty("gzOutput","false")))
 			return new PrintStream(new GZIPOutputStream(new FileOutputStream(Paths.get(filename+".gz").toFile())));
 		else
 			return new PrintStream(Paths.get(filename).toFile());

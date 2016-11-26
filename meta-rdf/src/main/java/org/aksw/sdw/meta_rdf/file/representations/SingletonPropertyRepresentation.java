@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import org.aksw.sdw.meta_rdf.MetaStatementsUnitView;
+import org.aksw.sdw.meta_rdf.Options;
 import org.aksw.sdw.meta_rdf.RdfQuad;
 
 public class SingletonPropertyRepresentation extends AbstractTripleIdBasedRepresentation {
@@ -15,6 +16,12 @@ public class SingletonPropertyRepresentation extends AbstractTripleIdBasedRepres
 	}
 	public SingletonPropertyRepresentation() {
 		super();
+	}
+	public SingletonPropertyRepresentation(Function<String, String> keyConvert, Function<String, String> valueConvert, Options options) {
+		super(keyConvert, valueConvert, options);
+	}
+	public SingletonPropertyRepresentation(Options options) {
+		super(options);
 	}
 	
 
@@ -32,8 +39,7 @@ public class SingletonPropertyRepresentation extends AbstractTripleIdBasedRepres
 		///String metaStatementUri = predicate+"-"+UUID.randomUUID().toString(); 	// generate  singleton property statement identifier for meta triple
 		q.setPredicate(stmtUri);
 		quads.add(q); 
-		quads.add(new RdfQuad(default_graph,"<"+stmtUri+">"+" <http://www.w3.org/1999/02/22-rdf-syntax-ns#singletonPropertyOf>"+" <"+predicate+"> .")); 	
-			
+		quads.add(new RdfQuad(default_graph,"<"+stmtUri+">"+" <http://www.w3.org/1999/02/22-rdf-syntax-ns#singletonPropertyOf>"+" <"+predicate+"> .")); 		
 	}
 	
 }

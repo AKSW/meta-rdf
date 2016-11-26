@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.aksw.sdw.meta_rdf.MetaStatementsUnitView;
+import org.aksw.sdw.meta_rdf.Options;
 import org.aksw.sdw.meta_rdf.RdfQuad;
 
 
@@ -17,6 +18,12 @@ public class CompanionPropertyRepresentation extends AbstractTripleIdBasedRepres
 	}
 	public CompanionPropertyRepresentation() {
 		super();
+	}
+	public CompanionPropertyRepresentation(Function<String, String> keyConvert, Function<String, String> valueConvert, Options options) {
+		super(keyConvert, valueConvert, options);
+	}
+	public CompanionPropertyRepresentation(Options options) {
+		super(options);
 	}
 	
 	@Override

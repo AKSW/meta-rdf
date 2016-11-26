@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import org.aksw.sdw.meta_rdf.Meta;
+import org.aksw.sdw.meta_rdf.Options;
 import org.aksw.sdw.meta_rdf.RdfQuad;
 import org.aksw.sdw.meta_rdf.file.metafile.MetaStatementsUnit;
 
@@ -25,15 +26,26 @@ public abstract class AbstractRepresentationFormat {
 	protected Function<String,String> keyConvert;
 	protected Function<String,String> valueConvert;
 	protected Map<RdfQuad,AtomicInteger> deduplicated=new ConcurrentHashMap<>();
-	protected String default_graph = Meta.getDefaultGraph();
+	protected String default_graph; //= Meta.getDefaultGraph();
+	protected Options options;
 
 	public abstract Collection<RdfQuad> getRepresenationForUnit(MetaStatementsUnit mu);
 	public abstract String getFileExtension();
 	
 	public AbstractRepresentationFormat(Function<String,String> keyConvert, Function<String,String> valueConvert) {
+		this();
 		this.keyConvert=keyConvert  ; this.valueConvert= valueConvert;	
 	}
 	
+	public AbstractRepresentationFormat(Function<String,String> keyConvert, Function<String,String> valueConvert, Options options) {
+		this(keyConvert,valueConvert);
+		this.options = new Options(options,this.getClass());
+		this.default_graph=this.options.getDefaultGraph();
+	}
+	
+	/** 
+	 * uses the default configuration (options) set in Meta.options
+	 */
 	public AbstractRepresentationFormat() {
 		
 		this.keyConvert = 
@@ -57,8 +69,17 @@ public abstract class AbstractRepresentationFormat {
 						return s;
 					else
 						return "\""+s.replaceAll("\t", "\\t").replaceAll("\"", "\\\"").replaceAll("\n", "\\n").replaceAll("\r", "\\r")+"\"";
-		};
+				};
+		this.options = new Options(Meta.getOptions(),this.getClass());
+		this.default_graph=options.getDefaultGraph();	
 	}
+	
+	public AbstractRepresentationFormat(Options options) {
+		this();
+		this.options = new Options(options,this.getClass());
+		this.default_graph=this.options.getDefaultGraph();
+	}
+	
 	
 	public Collection<RdfQuad> getDeduplicated()
 	{

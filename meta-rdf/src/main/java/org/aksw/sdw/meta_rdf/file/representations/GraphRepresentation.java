@@ -10,6 +10,7 @@ import java.util.function.Function;
 import org.aksw.sdw.meta_rdf.Meta;
 import org.aksw.sdw.meta_rdf.MetaStatement;
 import org.aksw.sdw.meta_rdf.MetaStatementsUnitView;
+import org.aksw.sdw.meta_rdf.Options;
 import org.aksw.sdw.meta_rdf.RdfQuad;
 import org.aksw.sdw.meta_rdf.RdfTools;
 import org.aksw.sdw.meta_rdf.file.metafile.MetaStatementsUnit;
@@ -27,6 +28,12 @@ public class GraphRepresentation extends AbstractRepresentationFormat {
 	}
 	public GraphRepresentation() {
 		super();
+	}
+	public GraphRepresentation(Function<String, String> keyConvert, Function<String, String> valueConvert, Options options) {
+		super(keyConvert, valueConvert, options);
+	}
+	public GraphRepresentation(Options options) {
+		super(options);
 	}
 	
 	@Override
@@ -58,7 +65,7 @@ public class GraphRepresentation extends AbstractRepresentationFormat {
 	@Override
 	public Collection<RdfQuad> getRepresenationForUnit(MetaStatementsUnit msu)
 	{
-		boolean forceSID = true;
+		boolean forceSID = options.getForcedSID();
 		List<RdfQuad> quads = new LinkedList<>();
 		MetaStatementsUnitView muv = new MetaStatementsUnitView(msu);
 		
@@ -100,11 +107,11 @@ public class GraphRepresentation extends AbstractRepresentationFormat {
 	    			  // attach the metadata which is specified in the mids field of this statement
 	    				processMetadataGroup(muv.getMetadataUnitsForStatement(st),quads,default_graph,statementUri,muv,1);
 	    				 
-	    				if (forceSID && Meta.shareCompactness())
+	    				if (forceSID && options.shareCompactness())
 	    				{ 
 	    					quads.add(new RdfQuad(default_graph,"<"+statementUri+"> "+"<http://sdw.aksw.org/metardf/hasSharedMeta>"+"<"+groupUri+"> ."));  ; 			// .. we use an specific id for the statement group sharing the same metadata   
 		    			}																																				// .. instead of attaching the metadata directly
-	    				else if (hasGroupID || (forceSID && ! Meta.shareCompactness()) )
+	    				else if (hasGroupID || (forceSID && ! options.shareCompactness()) )
 	    				{
 	    				  // replicate metadata from group using the SID
 	    					processMetadataGroup(sharedMeta,quads,default_graph,statementUri,muv,1);
@@ -113,7 +120,7 @@ public class GraphRepresentation extends AbstractRepresentationFormat {
 			    }	
 			}
 		// add metadata for statement group only once or add the 'compressed representation' of the shared metadata
-			if (!forceSID || (forceSID && Meta.shareCompactness()))
+			if (!forceSID || (forceSID && options.shareCompactness()))
 				processMetadataGroup(sharedMeta,quads,default_graph,groupUri,muv,1);
 			
 		}

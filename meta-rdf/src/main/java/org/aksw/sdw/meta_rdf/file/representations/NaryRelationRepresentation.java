@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.aksw.sdw.meta_rdf.MetaStatementsUnitView;
+import org.aksw.sdw.meta_rdf.Options;
 import org.aksw.sdw.meta_rdf.RdfQuad;
 
 public class NaryRelationRepresentation extends AbstractTripleIdBasedRepresentation {
@@ -14,7 +15,13 @@ public class NaryRelationRepresentation extends AbstractTripleIdBasedRepresentat
 	}
 	public NaryRelationRepresentation() {
 		super();
-	}	
+	}
+	public NaryRelationRepresentation(Function<String, String> keyConvert, Function<String, String> valueConvert, Options options) {
+		super(keyConvert, valueConvert, options);
+	}
+	public NaryRelationRepresentation(Options options) {
+		super(options);
+	}
 	
 	@Override
 	protected void addRepresentationForRdfQuad(List<RdfQuad> quads, RdfQuad q, String stmtUri,MetaStatementsUnitView muv)

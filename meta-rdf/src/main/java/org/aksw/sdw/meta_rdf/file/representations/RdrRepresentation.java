@@ -10,6 +10,7 @@ import java.util.function.Function;
 
 import org.aksw.sdw.meta_rdf.Meta;
 import org.aksw.sdw.meta_rdf.MetaStatementsUnitView;
+import org.aksw.sdw.meta_rdf.Options;
 import org.aksw.sdw.meta_rdf.RdfQuad;
 import org.aksw.sdw.meta_rdf.RdfStatement;
 import org.aksw.sdw.meta_rdf.RdfTools;
@@ -22,15 +23,18 @@ import org.aksw.sdw.meta_rdf.file.metafile.StatementsUnit;
 
 
 public class RdrRepresentation extends AbstractRepresentationFormat {
-	GraphRepresentation gr ;
 	
 	public RdrRepresentation(Function<String,String> keyConvert, Function<String,String> valueConvert) {
 		super(keyConvert,valueConvert);
-		this.gr = new GraphRepresentation(keyConvert, valueConvert);
 	}
 	public RdrRepresentation() {
 		super();
-		this.gr = new GraphRepresentation();
+	}
+	public RdrRepresentation(Function<String, String> keyConvert, Function<String, String> valueConvert, Options options) {
+		super(keyConvert, valueConvert, options);
+	}
+	public RdrRepresentation(Options options) {
+		super(options);
 	}
 	
 	@Override
@@ -144,9 +148,9 @@ public class RdrRepresentation extends AbstractRepresentationFormat {
 	
 	protected void processMetadataGroup(List<MetadataUnit> mus, List<RdfQuad> quads,String graphUri,String statementUri,MetaStatementsUnitView muv, int recursiveDepth)
 	{
-		if(Meta.metaGroupsAsGraph()) //if this is set proceed with the metadata in ngraphs mode 
-			gr.processMetadataGroup(mus, quads, graphUri, statementUri, muv, recursiveDepth);
-		else
+		//if(options.metaGroupsAsGraph()) //if this is set proceed with the metadata in ngraphs mode 
+			//gr.processMetadataGroup(mus, quads, graphUri, statementUri, muv, recursiveDepth);
+		//else
 		{
 			//List<MetadataUnit> recursiveGroups = new LinkedList<MetadataUnit>();
 			if (recursiveDepth>2)
