@@ -58,4 +58,9 @@ public class Options
 		return Boolean.parseBoolean(properties.getProperty("forceSID","false"));
 	}
 	
+	public boolean compStrongGroup()
+	{
+		return Boolean.parseBoolean(properties.getProperty("compStrongGroup","false"));
+	}
+	
 }

@@ -88,7 +88,19 @@ public class MetaStatementsUnitView {
 	 */
 	public int incrementProcessedCountForPredicatePerSubject(RdfQuad q)
 	{ 
-		Pair<String,String> p = new Pair<>(q.getSubject(), q.getPredicate());
+		return incrementProcessedCountForPredicatePerSubject(q.getSubject(), q.getPredicate());				
+	}
+	
+	/**
+	 * this method counts (and increments) for every subject separately how often a predicate has been processed within this MetaStatementsUnitView
+	 * 
+	 * @param subject the subject
+	 * @param predicate the predicate
+	 * @return the value of already processed predicates for the given subject predicate combination INCREMENTED by 1
+	 */
+	public int incrementProcessedCountForPredicatePerSubject(String subject, String predicate)
+	{ 
+		Pair<String,String> p = new Pair<>(subject, predicate);
 		Integer cnt = propertyCount.get(p);
 		if (null==cnt)
 		{
@@ -100,8 +112,6 @@ public class MetaStatementsUnitView {
 			propertyCount.put(p, cnt);
 			return cnt;	
 		}
-			
-			
 	}
 	
 

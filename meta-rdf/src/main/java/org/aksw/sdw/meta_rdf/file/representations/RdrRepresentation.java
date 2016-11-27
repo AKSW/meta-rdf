@@ -118,7 +118,7 @@ public class RdrRepresentation extends AbstractRepresentationFormat {
 		return quads;
 	}
 	
-	protected List<RdrStatement> processMetadataForStatement(List<MetadataUnit> mus, RdfQuad statement,MetaStatementsUnitView muv, int recursiveDepth)
+	protected List<RdrStatement> processMetadataForStatement2(List<MetadataUnit> mus, RdfQuad statement,MetaStatementsUnitView muv, int recursiveDepth)
 	{
 		List<RdrStatement> l = new ArrayList<>();
 		if (recursiveDepth>2)
@@ -131,10 +131,6 @@ public class RdrRepresentation extends AbstractRepresentationFormat {
 				if (!mu.getHasNested().equals(""))
 				{	
 					l.addAll(processMetadataForStatement(muv.getMetadataUnit(mu.getHasNested()),r,muv,recursiveDepth+1));
-//					for (RdrStatement rdrStatement : processMetadataForStatement(muv.getMetadataUnit(mu.getHasNested()),r,muv,recursiveDepth+1))
-//					{
-//						l.add(new RdrStatement(s, property, object))
-//					}
 				}
 				else
 				{
@@ -145,6 +141,60 @@ public class RdrRepresentation extends AbstractRepresentationFormat {
     	}
 		return l;
 	}
+	
+	//with sharedCompactness which does not make that much sense in rdr I think therefore deactivated
+	protected List<RdrStatement> processMetadataForStatement(List<MetadataUnit> mus, RdfQuad statement,MetaStatementsUnitView muv, int recursiveDepth)
+	{
+		List<RdrStatement> l = new ArrayList<>();
+		if (recursiveDepth>2)
+			return l; 
+		int companionGroupId = -1;
+		boolean shareCompactness = false;//options.shareCompactness(); //TODO
+		for (MetadataUnit mu : mus) 
+    	{   
+			boolean strongGroup =  mu.getGroupType().equals("strong") && options.compStrongGroup();
+			if (strongGroup) 
+				companionGroupId++;
+
+			String groupUri = mu.getGroupid(); 	// generate  property statement identifier for shared resource
+			if (shareCompactness) 
+				l.add(new RdrStatement(statement, "<http://sdw.aksw.org/metardf/hasSharedMeta>", groupUri)); // add rdr statement with link to sharedStatement only once
+			
+			for (MetadataFact mf : mu.getMetadataFacts())
+			{
+				String predicate = RdfTools.removeBrackets(keyConvert.apply(mf.getKey())); 
+				if (strongGroup)
+				{
+					//int i = muv.incrementProcessedCountForPredicatePerSubject(statement.getAsNq(),predicate);
+					String companion_property = predicate+"...!..."+companionGroupId;;
+					addToDeduplicated(new RdfQuad("",	"<"+ companion_property +">"	+" <http://www.w3.org/1999/02/22-rdf-syntax-ns#companionPropertyOf>"+	" <"+predicate+"> .")); 
+					addToDeduplicated(new RdfQuad("",	"<"+ companion_property +">"	+" <http://www.w3.org/1999/02/22-rdf-syntax-ns#companionGroup>"	+	"  \""+companionGroupId+"\" .")); 
+					predicate = companion_property;
+				}
+				if (!mu.getHasNested().equals(""))
+				{	
+					RdfQuad r;
+					if (shareCompactness)
+					{
+						r = new RdfQuad(groupUri+" "+         "<"+predicate+">"+" "+valueConvert.apply(mf.getValue())+" .");
+					}
+					else
+						r = new RdrStatement(statement, 	  "<"+predicate+">",	valueConvert.apply(mf.getValue())	  );
+						
+					l.addAll(processMetadataForStatement(muv.getMetadataUnit(mu.getHasNested()),r,muv,recursiveDepth+1));
+
+				}
+				else
+				{
+					RdrStatement r = new RdrStatement(statement, 	"<"+predicate+">",	valueConvert.apply(mf.getValue())	);
+					l.add(r);
+				}
+					
+			}
+    	}
+		return l;
+	}
+	
 	
 	protected void processMetadataGroup(List<MetadataUnit> mus, List<RdfQuad> quads,String graphUri,String statementUri,MetaStatementsUnitView muv, int recursiveDepth)
 	{
