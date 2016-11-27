@@ -9,7 +9,7 @@ import org.aksw.sdw.meta_rdf.Options;
 import org.aksw.sdw.meta_rdf.RdfQuad;
 
 
-public class CompanionPropertyRepresentation extends AbstractTripleIdBasedRepresentation {
+public class CompanionPropertyRepresentation extends AbstractDedicatedIdRepresentation {
 	static int tmp_cnt = 0;
 	
 	
