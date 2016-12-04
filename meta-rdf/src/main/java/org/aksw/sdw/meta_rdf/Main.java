@@ -11,7 +11,9 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,6 +24,7 @@ import org.aksw.sdw.meta_rdf.file.representations.AbstractRepresentationFormat;
 import org.aksw.sdw.meta_rdf.file.representations.CompanionPropertyRepresentation;
 import org.aksw.sdw.meta_rdf.file.representations.GraphRepresentation;
 import org.aksw.sdw.meta_rdf.file.representations.NaryRelationRepresentation;
+import org.aksw.sdw.meta_rdf.file.representations.RawDataRepresentation;
 import org.aksw.sdw.meta_rdf.file.representations.RdrRepresentation;
 import org.aksw.sdw.meta_rdf.file.representations.SingletonPropertyRepresentation;
 import org.aksw.sdw.meta_rdf.file.representations.StandardReificationRepresentation;
@@ -43,6 +46,7 @@ public class Main
 
     static String inputFilePath ;
     static String outputFilePattern ;
+    static int numThreads = 0;
     static Map<AbstractRepresentationFormat,PrintStream> representations = new HashMap<>();	
     static AtomicInteger linesCount = new AtomicInteger(0);
 
@@ -78,8 +82,10 @@ public class Main
 		try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) { //Files.newBufferedReader(Paths.get(inputFilePath))) {
 			try
 			{
+				if (numThreads>0)
+					System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", ""+numThreads);
 				//ps = new PrintStream(Paths.get(outputFilePattern).toFile());
-				br.lines().parallel().forEach(Main::processLine);
+				br.lines().unordered().parallel().forEach(Main::processLine);
 			} 
 			catch (Exception e)
 			{
@@ -115,10 +121,14 @@ public class Main
 		//output.setRequired(true);
 		options.addOption(output);
 		
+		Option threads = new Option("t", "threads", true, "the number of threads which should be used for parallel reading");
+		//output.setRequired(true);
+		options.addOption(threads);
+		
 		Option format = new Option("f", "formats", false, "list of representation formats which should be used or all (default)");
 		//format.setRequired(true); 
-		format.setArgs(12);
-		options.addOption(output);
+		format.setArgs(Option.UNLIMITED_VALUES);
+		options.addOption(format);
 		
 		Option properties  = OptionBuilder.withArgName( "property=value" )
                 .hasArgs(2)
@@ -144,9 +154,10 @@ public class Main
         inputFilePath = cmd.getOptionValue("input");
         outputFilePattern = cmd.getOptionValue("output");
         Meta.options =new org.aksw.sdw.meta_rdf.Options(cmd.getOptionProperties("D"));
+        numThreads = cmd.hasOption("threads") ? Integer.parseInt(cmd.getOptionValue("threads")) : 0;
         
         String all[] = {"all"};  
-        String formats[] = (cmd.getOptionValues("formats")!=null) ? cmd.getOptionValues("format") : all;
+        String formats[] = (cmd.getOptionValues("formats")!=null) ? cmd.getOptionValues("formats") : all;
         
         for (String f :  formats)
 		{
@@ -156,13 +167,15 @@ public class Main
 			if (f.equalsIgnoreCase("sgprop")  || f.equalsIgnoreCase("all"))
 				representations.put(	g = new SingletonPropertyRepresentation(), 			createPS(outputFilePattern+	"-sgprop."	+g.getFileExtension() )   );		
 			if (f.equalsIgnoreCase("stdreif") || f.equalsIgnoreCase("all"))
-				representations.put(	g = new StandardReificationRepresentation(), 		createPS(outputFilePattern+	"-sdtreif."	+g.getFileExtension() )   );		
+				representations.put(	g = new StandardReificationRepresentation(), 		createPS(outputFilePattern+	"-stdreif."	+g.getFileExtension() )   );		
 			if (f.equalsIgnoreCase("rdr")     || f.equalsIgnoreCase("all"))
 				representations.put(	g = new RdrRepresentation(), 						createPS(outputFilePattern+	"-rdr."		+g.getFileExtension() )   );		
 			if (f.equalsIgnoreCase("cpprop")  || f.equalsIgnoreCase("all"))
 				representations.put(	g = new CompanionPropertyRepresentation(), 			createPS(outputFilePattern+	"-cpprop."	+g.getFileExtension() )   );
 			if (f.equalsIgnoreCase("nary")    || f.equalsIgnoreCase("all"))
 				representations.put(	g = new NaryRelationRepresentation(), 			    createPS(outputFilePattern+	"-nary."	+g.getFileExtension() )   );
+			if (f.equalsIgnoreCase("data")    || f.equalsIgnoreCase("all"))
+				representations.put(	g = new RawDataRepresentation(), 			    	createPS(outputFilePattern+	"-data."	+g.getFileExtension() )   );
 		}
 
     }
@@ -178,6 +191,8 @@ public class Main
 	static void processLine(String line)
 	{
 		int thisLineNr = linesCount.getAndIncrement();
+		if (thisLineNr % 1000 == 0)
+			System.out.println(new SimpleDateFormat("HH:mm:ss").format(new Date())+" processed units: "+linesCount);
 		MetaStatementsUnit msu;
 		try
 		{
