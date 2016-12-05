@@ -101,6 +101,8 @@ public class RdrRepresentation extends AbstractRepresentationFormat {
 //	    					processMetadataGroup(sharedMeta,quads,default_graph,statementUri,muv,1);
 	    					quads.addAll(processMetadataForStatement(sharedMeta,q,muv,1));
 	    					
+	    					
+	    					
 	    				}
 	    			}
 //	    			else if (Meta.shareCompactness()) 			// if shareCompactness is set .
@@ -111,6 +113,24 @@ public class RdrRepresentation extends AbstractRepresentationFormat {
 //	    				processMetadataGroup(sharedMeta,quads,default_graph,statementUri,muv,1); // else just do the regular singleton property stuff
 			    }
 			}
+			
+			if (options.shareCompactness())
+			{
+				for (MetadataUnit mu : sharedMeta) 
+				{
+					if (mu.getGroupid().endsWith("Revisions>"))
+					{
+						for (MetadataFact mf : mu.getMetadataFacts())
+						{
+							String groupUri2 = mu.getGroupid();
+							String predicate = RdfTools.removeBrackets(keyConvert.apply(mf.getKey())); 
+							quads.add(new RdfQuad(groupUri2+" "+         "<"+predicate+">"+" "+valueConvert.apply(mf.getValue())+" ."));
+						}
+					}
+				}
+			}
+				
+					
 //			if (Meta.shareCompactness())
 //				processMetadataGroup(sharedMeta,quads,default_graph,groupUri,muv,1); // add metadata which applies to the whole group only once
 			
@@ -118,40 +138,40 @@ public class RdrRepresentation extends AbstractRepresentationFormat {
 		return quads;
 	}
 	
-	protected List<RdrStatement> processMetadataForStatement2(List<MetadataUnit> mus, RdfQuad statement,MetaStatementsUnitView muv, int recursiveDepth)
-	{
-		List<RdrStatement> l = new ArrayList<>();
-		if (recursiveDepth>2)
-			return l; 
-		for (MetadataUnit mu : mus) 
-    	{   
-			for (MetadataFact mf : mu.getMetadataFacts())
-			{
-				RdrStatement r = new RdrStatement(statement, 	keyConvert.apply(mf.getKey()),	valueConvert.apply(mf.getValue())	);
-				if (!mu.getHasNested().equals(""))
-				{	
-					l.addAll(processMetadataForStatement(muv.getMetadataUnit(mu.getHasNested()),r,muv,recursiveDepth+1));
-				}
-				else
-				{
-					l.add(r);
-				}
-					
-			}
-    	}
-		return l;
-	}
+//	protected List<RdrStatement> processMetadataForStatement2(List<MetadataUnit> mus, RdfQuad statement,MetaStatementsUnitView muv, int recursiveDepth)
+//	{
+//		List<RdrStatement> l = new ArrayList<>();
+//		if (recursiveDepth>2)
+//			return l; 
+//		for (MetadataUnit mu : mus) 
+//    	{   
+//			for (MetadataFact mf : mu.getMetadataFacts())
+//			{
+//				RdrStatement r = new RdrStatement(statement, 	keyConvert.apply(mf.getKey()),	valueConvert.apply(mf.getValue())	);
+//				if (!mu.getHasNested().equals(""))
+//				{	
+//					l.addAll(processMetadataForStatement(muv.getMetadataUnit(mu.getHasNested()),r,muv,recursiveDepth+1));
+//				}
+//				else
+//				{
+//					l.add(r);
+//				}
+//					
+//			}
+//    	}
+//		return l;
+//	}
 	
 	//with sharedCompactness which does not make that much sense in rdr I think therefore deactivated
-	protected List<RdrStatement> processMetadataForStatement(List<MetadataUnit> mus, RdfQuad statement,MetaStatementsUnitView muv, int recursiveDepth)
+	protected List<RdfQuad> processMetadataForStatement(List<MetadataUnit> mus, RdfQuad statement,MetaStatementsUnitView muv, int recursiveDepth)
 	{
-		List<RdrStatement> l = new ArrayList<>();
+		List<RdfQuad> l = new ArrayList<>();
 		if (recursiveDepth>2)
 			return l; 
 		int companionGroupId = -1;
-		boolean shareCompactness = false;//options.shareCompactness(); //TODO
 		for (MetadataUnit mu : mus) 
     	{   
+			boolean shareCompactness = options.shareCompactness()&& mu.getGroupid().endsWith("Revisions>"); //TODO
 			boolean strongGroup =  mu.getGroupType().equals("strong") && options.compStrongGroup();
 			if (strongGroup) 
 				companionGroupId++;
@@ -171,23 +191,29 @@ public class RdrRepresentation extends AbstractRepresentationFormat {
 					addToDeduplicated(new RdfQuad("",	"<"+ companion_property +">"	+" <http://www.w3.org/1999/02/22-rdf-syntax-ns#companionGroup>"	+	"  \""+companionGroupId+"\" .")); 
 					predicate = companion_property;
 				}
+				RdfQuad r;
 				if (!mu.getHasNested().equals(""))
 				{	
-					RdfQuad r;
-					if (shareCompactness)
-					{
-						r = new RdfQuad(groupUri+" "+         "<"+predicate+">"+" "+valueConvert.apply(mf.getValue())+" .");
-					}
-					else
+//					
+					if (!shareCompactness) {
+//					{
+//						r = new RdfQuad(groupUri+" "+         "<"+predicate+">"+" "+valueConvert.apply(mf.getValue())+" .");
+//					}
+//					else
 						r = new RdrStatement(statement, 	  "<"+predicate+">",	valueConvert.apply(mf.getValue())	  );
 						
-					l.addAll(processMetadataForStatement(muv.getMetadataUnit(mu.getHasNested()),r,muv,recursiveDepth+1));
+					l.addAll(processMetadataForStatement(muv.getMetadataUnit(mu.getHasNested()),r,muv,recursiveDepth+1)); }
 
 				}
 				else
 				{
-					RdrStatement r = new RdrStatement(statement, 	"<"+predicate+">",	valueConvert.apply(mf.getValue())	);
-					l.add(r);
+					if (!shareCompactness) {
+//					{
+//						r = new RdfQuad(groupUri+" "+         "<"+predicate+">"+" "+valueConvert.apply(mf.getValue())+" .");
+//					}
+//					else
+						r = new RdrStatement(statement, 	"<"+predicate+">",	valueConvert.apply(mf.getValue())	); 
+					l.add(r);}
 				}
 					
 			}
