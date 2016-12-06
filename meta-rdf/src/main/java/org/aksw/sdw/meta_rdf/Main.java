@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.io.Reader;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -38,6 +37,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+
+import one.util.streamex.StreamEx;
 
 	
 
@@ -85,7 +86,8 @@ public class Main
 				if (numThreads>0)
 					System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", ""+numThreads);
 				//ps = new PrintStream(Paths.get(outputFilePattern).toFile());
-				br.lines().unordered().parallel().forEach(Main::processLine);
+				//br.lines().unordered().parallel().forEach(Main::processLine);
+				StreamEx.ofLines(br).unordered().parallel().forEach(Main::processLine);
 			} 
 			catch (Exception e)
 			{
